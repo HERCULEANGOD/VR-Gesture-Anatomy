@@ -14,16 +14,19 @@ public class GeminiService : MonoBehaviour
 
     [Header("Configuration")]
     public AIEngine selectedEngine = AIEngine.Auto;
+    public string ollamaIP = "localhost"; // Change to your PC's IP (e.g. 192.168.1.5) if using a Headset
     public string ollamaModel = "llama3";
     public string geminiApiKey = ""; 
     
-    private const string OLLAMA_URL = "http://localhost:11434/api/generate";
+    private string OLLAMA_URL => $"http://{ollamaIP}:11434/api/generate";
+    private string OLLAMA_PROBE => $"http://{ollamaIP}:11434/api/tags";
     private const string GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
     
     private static GeminiService _instance;
     public static GeminiService Instance => _instance ??= FindObjectOfType<GeminiService>();
 
     private bool _isOllamaAvailable = false;
+    public string CurrentStatus { get; private set; } = "Initializing...";
 
     void Awake() 
     { 
@@ -41,23 +44,32 @@ public class GeminiService : MonoBehaviour
 
     IEnumerator ProbeOllama()
     {
-        using (UnityWebRequest request = UnityWebRequest.Get("http://localhost:11434/api/tags"))
+        CurrentStatus = "🔍 Searching for Local AI (Ollama)...";
+        using (UnityWebRequest request = UnityWebRequest.Get(OLLAMA_PROBE))
         {
             request.timeout = 2;
             yield return request.SendWebRequest();
             _isOllamaAvailable = request.result == UnityWebRequest.Result.Success;
-            if (_isOllamaAvailable) Debug.Log("🚀 [AI Brain] Ollama detected! Running in Local-First mode.");
+            
+            if (_isOllamaAvailable) {
+                CurrentStatus = "✅ Local AI Active (" + ollamaModel + ")";
+                Debug.Log("🚀 [AI Brain] Ollama detected at " + ollamaIP + "! Running in Local-First mode.");
+            } else {
+                CurrentStatus = IsGeminiReady() ? "☁️ Cloud AI Active (Gemini)" : "📂 Safe-Mode (Offline)";
+                Debug.LogWarning("⚠️ [AI Brain] Ollama not found at " + ollamaIP + ". Falling back to Cloud/Local Knowledge.");
+            }
         }
     }
 
-    public bool IsConfigured() => _isOllamaAvailable || (!string.IsNullOrEmpty(geminiApiKey) && geminiApiKey.Length > 20);
+    private bool IsGeminiReady() => !string.IsNullOrEmpty(geminiApiKey) && geminiApiKey.Length > 20;
+    public bool IsConfigured() => _isOllamaAvailable || IsGeminiReady();
 
     public void SendPrompt(string prompt, Action<string> onSuccess, Action<string> onError = null)
     {
         if (selectedEngine == AIEngine.Ollama || (selectedEngine == AIEngine.Auto && _isOllamaAvailable))
         {
             StartCoroutine(ExecuteOllamaRequest(prompt, onSuccess, (err) => {
-                // If local fails, try Gemini as backup
+                Debug.LogWarning("🕒 [AI Brain] Ollama timed out or failed. Trying Gemini Cloud...");
                 StartCoroutine(ExecuteGeminiRequest(prompt, onSuccess, onError));
             }));
         }
@@ -69,7 +81,6 @@ public class GeminiService : MonoBehaviour
 
     IEnumerator ExecuteOllamaRequest(string prompt, Action<string> onSuccess, Action<string> onFail)
     {
-        // Simple JSON builder to avoid dependencies
         string json = "{\"model\":\"" + ollamaModel + "\",\"prompt\":\"" + prompt.Replace("\"", "'") + "\",\"stream\":false}";
         
         using (UnityWebRequest request = new UnityWebRequest(OLLAMA_URL, "POST"))
@@ -85,16 +96,13 @@ public class GeminiService : MonoBehaviour
             if (request.result == UnityWebRequest.Result.Success)
             {
                 string response = request.downloadHandler.text;
-                Debug.Log("[AI Brain] Raw response: " + response);
-                
                 string extractedBody = ExtractPropertyValue(response, "response");
-                if (string.IsNullOrEmpty(extractedBody)) extractedBody = response; // Fallback to raw if logic fails
+                if (string.IsNullOrEmpty(extractedBody)) extractedBody = response;
                 
                 onSuccess?.Invoke(extractedBody.Replace("\\n", "\n").Replace("\\\"", "\""));
             }
             else
             {
-                Debug.LogError("[AI Brain] Ollama Request Failed: " + request.error);
                 onFail?.Invoke(request.error);
             }
         }
