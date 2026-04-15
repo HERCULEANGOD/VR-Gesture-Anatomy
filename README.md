@@ -28,7 +28,7 @@ To enhance the learning experience, we've integrated a sophisticated Multi-AI Br
 
 ### 🔬 Medical-Grade Visualization
 - **PBR Shaders**: Realistic materials simulating subsurface scattering for human tissue.
-- **High-Fidelity Models**: Anatomical data sourced and processed for mobile VR performance.
+- **High-Fidelity Models**: Anatomical data sourced and processed for high-performance standalone VR.
 
 ---
 
