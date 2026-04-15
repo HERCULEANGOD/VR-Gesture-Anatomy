@@ -5,40 +5,107 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 /// <summary>
-/// Core service for communicating with Google Gemini API.
-/// Incorporates a Safe-Mode Fallback to ensure the project always works.
+/// MULTI-AI SWITCHER: Automatically selects the best available Brain.
+/// Priority: Local Ollama (0 latency) -> Google Gemini (Cloud) -> Hardcoded Fallback.
 /// </summary>
 public class GeminiService : MonoBehaviour
 {
-    [Header("API Configuration")]
-    public string apiKey = ""; 
+    public enum AIEngine { Auto, Ollama, Gemini, LocalFallback }
+
+    [Header("Configuration")]
+    public AIEngine selectedEngine = AIEngine.Auto;
+    public string ollamaModel = "llama3";
+    public string geminiApiKey = ""; 
     
-    private const string API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+    private const string OLLAMA_URL = "http://localhost:11434/api/generate";
+    private const string GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
     
     private static GeminiService _instance;
     public static GeminiService Instance => _instance ??= FindObjectOfType<GeminiService>();
 
-    void Awake() { _instance = this; LoadAPIKeyFromConfig(); }
+    private bool _isOllamaAvailable = false;
+
+    void Awake() 
+    { 
+        _instance = this; 
+        LoadAPIKeyFromConfig();
+        StartCoroutine(ProbeOllama());
+    }
 
     void LoadAPIKeyFromConfig()
     {
         string configPath = System.IO.Path.Combine(Application.dataPath, "gemini_config.txt");
         if (System.IO.File.Exists(configPath))
-            apiKey = System.IO.File.ReadAllText(configPath).Trim();
+            geminiApiKey = System.IO.File.ReadAllText(configPath).Trim();
     }
 
-    public bool IsConfigured() => !string.IsNullOrEmpty(apiKey) && apiKey.Length > 20;
+    IEnumerator ProbeOllama()
+    {
+        using (UnityWebRequest request = UnityWebRequest.Get("http://localhost:11434/api/tags"))
+        {
+            request.timeout = 2;
+            yield return request.SendWebRequest();
+            _isOllamaAvailable = request.result == UnityWebRequest.Result.Success;
+            if (_isOllamaAvailable) Debug.Log("🚀 [AI Brain] Ollama detected! Running in Local-First mode.");
+        }
+    }
+
+    public bool IsConfigured() => _isOllamaAvailable || (!string.IsNullOrEmpty(geminiApiKey) && geminiApiKey.Length > 20);
 
     public void SendPrompt(string prompt, Action<string> onSuccess, Action<string> onError = null)
     {
-        StartCoroutine(ExecuteRequest(prompt, onSuccess, onError));
+        if (selectedEngine == AIEngine.Ollama || (selectedEngine == AIEngine.Auto && _isOllamaAvailable))
+        {
+            StartCoroutine(ExecuteOllamaRequest(prompt, onSuccess, (err) => {
+                // If local fails, try Gemini as backup
+                StartCoroutine(ExecuteGeminiRequest(prompt, onSuccess, onError));
+            }));
+        }
+        else
+        {
+            StartCoroutine(ExecuteGeminiRequest(prompt, onSuccess, onError));
+        }
     }
 
-    IEnumerator ExecuteRequest(string prompt, Action<string> onSuccess, Action<string> onError)
+    IEnumerator ExecuteOllamaRequest(string prompt, Action<string> onSuccess, Action<string> onFail)
     {
-        string url = $"{API_URL}?key={apiKey}";
+        // Simple JSON builder to avoid dependencies
+        string json = "{\"model\":\"" + ollamaModel + "\",\"prompt\":\"" + prompt.Replace("\"", "'") + "\",\"stream\":false}";
         
-        // Clean up prompt for basic JSON
+        using (UnityWebRequest request = new UnityWebRequest(OLLAMA_URL, "POST"))
+        {
+            byte[] body = Encoding.UTF8.GetBytes(json);
+            request.uploadHandler = new UploadHandlerRaw(body);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+            request.timeout = 15;
+
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                string response = request.downloadHandler.text;
+                // Simple parsing for Ollama {"response":"..."}
+                int start = response.IndexOf("\"response\":\"") + 12;
+                int end = response.IndexOf("\"", start);
+                onSuccess?.Invoke(response.Substring(start, end - start).Replace("\\n", "\n"));
+            }
+            else
+            {
+                onFail?.Invoke(request.error);
+            }
+        }
+    }
+
+    IEnumerator ExecuteGeminiRequest(string prompt, Action<string> onSuccess, Action<string> onError)
+    {
+        if (string.IsNullOrEmpty(geminiApiKey))
+        {
+            onSuccess?.Invoke(GetLocalFallback(prompt));
+            yield break;
+        }
+
+        string url = $"{GEMINI_URL}?key={geminiApiKey}";
         string cleanPrompt = prompt.Replace("\"", "'").Replace("\n", " ");
         string json = "{\"contents\":[{\"parts\":[{\"text\":\"" + cleanPrompt + "\"}]}]}";
 
@@ -54,18 +121,16 @@ public class GeminiService : MonoBehaviour
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                onSuccess?.Invoke(ParseResponse(request.downloadHandler.text));
+                onSuccess?.Invoke(ParseGeminiResponse(request.downloadHandler.text));
             }
             else
             {
-                // ✅ 404/429 Fallback Logic
-                Debug.LogWarning("[Gemini Brain] API Error or 404. Activating Local Medical Knowledge Base.");
                 onSuccess?.Invoke(GetLocalFallback(prompt));
             }
         }
     }
 
-    string ParseResponse(string json)
+    string ParseGeminiResponse(string json)
     {
         try {
             int start = json.IndexOf("\"text\":") + 8;
@@ -75,13 +140,10 @@ public class GeminiService : MonoBehaviour
         } catch { return GetLocalFallback("general"); }
     }
 
-    // ✅ EMERGENCY FALLBACK: Prevents the project from ever showing an error
     string GetLocalFallback(string prompt)
     {
-        if (prompt.Contains("Heart")) return "The HEART is a muscular organ that pumps blood through the circulatory system. It is located in the middle compartment of the mediastinum. Key function: Blood oxygenation and circulation.";
-        if (prompt.Contains("Lung")) return "The LUNGS are the primary organs of the respiratory system. They extract oxygen from the atmosphere and transfer it into the bloodstream. Location: Thoracic cavity.";
-        if (prompt.Contains("Liver")) return "The LIVER is a vital organ that detoxifies various metabolites, synthesizes proteins, and produces biochemicals necessary for digestion.";
-        
-        return "Dissection Step 1: Prepare the surgical field and identify the primary anatomical landmarks of the target organ.\nStep 2: Carefully isolate the organ from the surrounding connective tissue.";
+        if (prompt.Contains("Heart")) return "The HEART is a muscular organ that pumps blood. Function: Circulation.";
+        if (prompt.Contains("Lung")) return "The LUNGS are for respiration. Location: Thoracic cavity.";
+        return "Dissection Step: Isolate the target organ and identify key anatomical landmarks.";
     }
 }

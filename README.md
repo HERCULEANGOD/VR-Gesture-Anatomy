@@ -20,27 +20,15 @@ Stop clicking buttons. Start grabbing life.
 - **Precision Ray-Selection**: Point your finger to highlight specific vessels with laser accuracy.
 - **Air-Gestures**: Use natural pinches to zoom into neural pathways or swipes to rotate the entire anatomical stage.
 
-### 🧠 The "Always-On" Surgical Expert
-Meet your new AI Mentor, powered by **Gemini 1.5 Flash**.
-- **Ask Anything**: "What are the common surgical risks for this lobe of the lung?"
-- **AI-Guided Dissection**: Get step-by-step procedural instructions in real-time.
-- **Safe-Mode Resilience**: Even if the Wi-Fi drops, our built-in **Local Medical Brain** ensures the simulation never fails during a critical demo.
-
-### 🔬 Hyper-Realistic Tissue Physics
-- **Subsurface Scattering**: Watch light bleed through the semi-translucent tissue of the liver and lungs.
-- **Anatomical Integrity**: Models are sourced from medical-grade OBJ data for millimeter-perfect accuracy.
+### 🧠 Intelligent Multi-AI Brain 🚀
+Forget API downtime. Vortex Anatomy now features a specialized **Fail-Safe AI Brain** that intelligently switches between providers:
+- **Local Ollama (Priority)**: If you have Ollama running, the simulation uses your local GPU for zero-latency, private AI.
+- **Google Gemini (Cloud)**: If no local server is found, it attempts to use the Gemini 1.5 Flash cloud API.
+- **Local Medical Database (Fallback)**: If completely offline, it serves built-in medical guidance to ensure your demo never fails.
 
 ---
 
-## 🛠️ Tech Stack & Magic
-*   **Engine**: Unity 2022.3 (Universal Render Pipeline)
-*   **XR Core**: Meta XR SDK + Skeletal Hand Tracking
-*   **Intelligence Layer**: Google Gemini API + Local Fallback Controller
-*   **Data Pipeline**: Python-driven Medical Model Fetcher
-
----
-
-## ⚡ Quick Start (60-Second Setup)
+## ⚡ Quick Start (The "Bulletproof" Setup)
 
 ### 1️⃣ Clone the Lab
 ```bash
@@ -48,13 +36,13 @@ git clone https://github.com/HERCULEANGOD/VR-Gesture-Anatomy.git
 ```
 
 ### 2️⃣ Inject the Organs
-We keep the repo lightweight. Use this simple script to download high-fidelity medical models:
 ```bash
 python download_models.py
 ```
 
-### 3️⃣ Wake up the AI
-Create a file at `Assets/gemini_config.txt` and drop in your API Key. No key? No problem. The **Local Medical Brain** will handle everything automatically.
+### 3️⃣ Setup AI (Choose One)
+- **Local (Ollama)**: Install [Ollama](https://ollama.com/), run `ollama run llama3`. Unity auto-detects it.
+- **Cloud (Gemini)**: Create `Assets/gemini_config.txt` and paste your API Key.
 
 ### 4️⃣ Enter the XR Scene
 - Open in Unity 2022.3.
