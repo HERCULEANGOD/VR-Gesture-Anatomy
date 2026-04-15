@@ -85,16 +85,45 @@ public class GeminiService : MonoBehaviour
             if (request.result == UnityWebRequest.Result.Success)
             {
                 string response = request.downloadHandler.text;
-                // Simple parsing for Ollama {"response":"..."}
-                int start = response.IndexOf("\"response\":\"") + 12;
-                int end = response.IndexOf("\"", start);
-                onSuccess?.Invoke(response.Substring(start, end - start).Replace("\\n", "\n"));
+                Debug.Log("[AI Brain] Raw response: " + response);
+                
+                string extractedBody = ExtractPropertyValue(response, "response");
+                if (string.IsNullOrEmpty(extractedBody)) extractedBody = response; // Fallback to raw if logic fails
+                
+                onSuccess?.Invoke(extractedBody.Replace("\\n", "\n").Replace("\\\"", "\""));
             }
             else
             {
+                Debug.LogError("[AI Brain] Ollama Request Failed: " + request.error);
                 onFail?.Invoke(request.error);
             }
         }
+    }
+
+    /// <summary>
+    /// Robust property extraction for simple JSON without requiring external libraries.
+    /// Handles escaped quotes and nested objects better than index-skipping.
+    /// </summary>
+    string ExtractPropertyValue(string json, string propertyName)
+    {
+        string search = "\"" + propertyName + "\":\"";
+        int start = json.IndexOf(search);
+        if (start == -1) return null;
+        
+        start += search.Length;
+        // Find the closing quote, but skip escaped ones \"
+        int end = -1;
+        for (int i = start; i < json.Length; i++)
+        {
+            if (json[i] == '\"' && (i == 0 || json[i - 1] != '\\'))
+            {
+                end = i;
+                break;
+            }
+        }
+        
+        if (end == -1) return null;
+        return json.Substring(start, end - start);
     }
 
     IEnumerator ExecuteGeminiRequest(string prompt, Action<string> onSuccess, Action<string> onError)
