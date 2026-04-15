@@ -1,5 +1,5 @@
-# 🫀 Vortex Anatomy: The Future of Surgical Learning
-> **AI-Powered XR Simulation for the Next Generation of Surgeons**
+# 🧠 ML-Powered Gesture Recognition for Immersive VR Learning
+> **Intelligent Hand-Tracking & AI-Guided Anatomical Education**
 
 ---
 
