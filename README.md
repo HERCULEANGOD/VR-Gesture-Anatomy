@@ -1,60 +1,61 @@
 # 🧠 ML-Powered Gesture Recognition for Immersive VR Learning
-> **Intelligent Hand-Tracking & AI-Guided Anatomical Education**
+> **Translating Natural Hand Movements into Immersive Educational Experiences**
 
 ---
 
-## 🔥 Experience the Invisible
-**Vortex Anatomy** isn't just a 3D model viewer; it's a high-stakes surgical lab in your pocket. By combining **Skeletal Hand Tracking** with **Generative AI**, we've created a touchless, intuitive environment where you can learn anatomy by *doing*, not just reading.
+## 🚀 Project Overview
+This project explores the intersection of **Machine Learning** and **Virtual Reality** to create a touchless, highly intuitive anatomical learning platform. By utilizing skeletal hand tracking and intelligent gesture recognition, users can interact with high-fidelity medical data without the need for traditional controllers, making the learning process truly immersive and natural.
 
-[![Technology Stack](https://img.shields.io/badge/Made%20with-Unity-black?style=for-the-badge&logo=unity)](https://unity.com)
-[![Platform](https://img.shields.io/badge/Hardware-Meta%20Quest-blue?style=for-the-badge&logo=oculus)](https://www.meta.com/quest/)
-[![AI Powered](https://img.shields.io/badge/AI-Google%20Gemini-orange?style=for-the-badge&logo=google-gemini)](https://ai.google.dev/)
+[![Tech Stack](https://img.shields.io/badge/Engine-Unity-black?style=for-the-badge&logo=unity)](https://unity.com)
+[![Interaction](https://img.shields.io/badge/Interaction-Meta%20Quest-blue?style=for-the-badge&logo=oculus)](https://www.meta.com/quest/)
+[![Intelligence](https://img.shields.io/badge/AI-Multi--Tier--Brain-orange?style=for-the-badge&logo=google-gemini)](https://ai.google.dev/)
 
 ---
 
-## ✨ What makes it Revolutionary?
+## ✨ Key Innovations
 
-### 🖐️ Your Hands are the Tools
-Stop clicking buttons. Start grabbing life.
-- **Natural Grabbing**: Reach out and physically pick up a beating heart.
-- **Precision Ray-Selection**: Point your finger to highlight specific vessels with laser accuracy.
-- **Air-Gestures**: Use natural pinches to zoom into neural pathways or swipes to rotate the entire anatomical stage.
+### 🖐️ Intelligent Gesture Recognition
+The core of this project is its ability to understand the human hand. We move beyond simple "clicks" to support:
+- **Natural Grabbing & Translation**: Use your physical hand to pick up, move, and inspect organs.
+- **Skeletal-Based Selection**: Pointing gestures are processed in real-time for high-precision anatomical selection.
+- **Dynamic Interaction Logic**: Continuous tracking of finger curl and palm orientation for realistic surgical maneuvers.
 
-### 🧠 Intelligent Multi-AI Brain 🚀
-Forget API downtime. Vortex Anatomy now features a specialized **Fail-Safe AI Brain** that intelligently switches between providers:
-- **Local Ollama (Priority)**: If you have Ollama running, the simulation uses your local GPU for zero-latency, private AI.
-- **Google Gemini (Cloud)**: If no local server is found, it attempts to use the Gemini 1.5 Flash cloud API.
-- **Local Medical Database (Fallback)**: If completely offline, it serves built-in medical guidance to ensure your demo never fails.
+### 🧠 AI-Guided Medical Immersion
+To enhance the learning experience, we've integrated a sophisticated Multi-AI Brain:
+- **Fail-Safe AI Switcher**: Automatically jumps between **Local Ollama (Llama3)** and **Google Gemini** to ensure the user always has a tutor available.
+- **Contextual Knowledge**: The AI understands exactly which organ your hand is touching and provides relevant, medically-vetted information.
+- **Interactive Dissection Guides**: Step-by-step procedures are generated on-the-fly, guided by the user's progress.
+
+### 🔬 Medical-Grade Visualization
+- **PBR Shaders**: Realistic materials simulating subsurface scattering for human tissue.
+- **High-Fidelity Models**: Anatomical data sourced and processed for mobile VR performance.
 
 ---
 
 ## ⚡ Quick Start (The "Bulletproof" Setup)
 
-### 1️⃣ Clone the Lab
+### 1️⃣ Repository & Data Prep
 ```bash
 git clone https://github.com/HERCULEANGOD/VR-Gesture-Anatomy.git
-```
-
-### 2️⃣ Inject the Organs
-```bash
+cd VR-Gesture-Anatomy
 python download_models.py
 ```
 
-### 3️⃣ Setup AI (Choose One)
-- **Local (Ollama)**: Install [Ollama](https://ollama.com/), run `ollama run llama3`. Unity auto-detects it.
-- **Cloud (Gemini)**: Create `Assets/gemini_config.txt` and paste your API Key.
+### 2️⃣ Setting up the Brain (Choose One)
+- **Local (Recommended)**: Install [Ollama](https://ollama.com/) and run `ollama run llama3`. Unity will auto-detect it.
+- **Cloud**: Create `Assets/gemini_config.txt` and paste your API Key.
+*Note: If both are missing, the system uses a built-in Local Medical Knowledge Base.*
 
-### 4️⃣ Enter the XR Scene
-- Open in Unity 2022.3.
-- Navigate to `Assets/Scenes/MainScene`.
-- Run the **AutoMorgueSetup** editor tool to finalize the environment.
-- Hit **Play** and step into the future of medicine.
+### 3️⃣ Run the simulation
+- Open the project in Unity 2022.3.
+- Open `Assets/Scenes/MainScene.unity`.
+- Hit **Play** to start the immersive learning session.
 
 ---
 
-## 🌐 Vision & Impact
-Vortex Anatomy aims to democratize medical education in regions with limited access to physical cadavers. By providing a professional-grade XR lab for the price of a consumer headset, we are training the surgeons of tomorrow, today.
+## 🌐 Our Vision
+We believe the future of education is touchless. By perfecting **ML-Powered Gesture Recognition**, we aim to make high-end medical training accessible to everyone, anywhere, using nothing but their own hands and a VR headset.
 
 ---
 **Developed with ❤️ by [HERCULEANGOD](https://github.com/HERCULEANGOD)**
-*"Revolutionizing the way we touch life."*
+*"Mastering the art of natural interaction."*
